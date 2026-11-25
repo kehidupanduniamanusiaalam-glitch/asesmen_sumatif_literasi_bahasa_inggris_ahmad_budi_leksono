@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asesmen Literasi Bahasa Inggris MTs | Enterprise CBT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Cinzel', 'serif'],
+                    },
+                    colors: {
+                        royal: {
+                            950: '#130724',
+                            900: '#1e0b3b',
+                            800: '#2d1259',
+                            700: '#431c82',
+                            600: '#5b26b0',
+                        },
+                        gold: {
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Anti-Copy & Selection Protection */
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            overflow-x: hidden;
+        }
+        /* Allow typing inside input & textarea */
+        input, textarea, select {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 11, 59, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #eab308;
+            border-radius: 9999px;
+        }
+        .glass-panel {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #certificate-printable, #certificate-printable * {
+                visibility: visible;
+            }
+            #certificate-printable {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 20px;
+                box-shadow: none !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-royal-950 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col">
+
+    <!-- CUSTOM TOAST / NOTIFICATION BANNER -->
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- LOCK OUT OVERLAY SCREEN (TRIGGERED ON TAB SWITCH / BLUR / LOCK OUT) -->
+    <div id="lockout-screen" class="hidden fixed inset-0 z-[90] bg-royal-950/95 glass-panel flex flex-col items-center justify-center p-6 text-center">
+        <div class="max-w-lg w-full bg-royal-900 border-2 border-red-500/70 rounded-3xl p-8 shadow-2xl shadow-red-900/40">
+            <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-red-500/20 border border-red-500 flex items-center justify-center text-red-400">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-wide" data-i18n="lockoutTitle">SISTEM TERKUNCI (LOCK OUT)</h2>
+            <p id="lockout-reason" class="text-red-300 text-sm sm:text-base mb-6 font-medium">
+                Terdeteksi perpindahan tab browser, jendela aplikasi lain, atau penguncian layar perangkat.
+            </p>
+            <div class="bg-royal-950/80 border border-gold-500/30 rounded-2xl p-4 mb-6 text-left text-xs text-slate-300 space-y-1">
+                <p><span class="text-gold-400 font-semibold">Status Ujian:</span> DIBEKUKAN OTOMATIS</p>
+                <p><span class="text-gold-400 font-semibold">Peserta:</span> <span id="lock-student-name">-</span></p>
+                <p><span class="text-gold-400 font-semibold">Keamanan:</span> Anti-Cheat Enterprise Guard</p>
+            </div>
+            <p class="text-xs text-slate-400 mb-6" data-i18n="lockoutDesc">
+                Sesuai peraturan asesmen, murid tidak dapat melanjutkan pengerjaan. Hubungi pengawas / administrator untuk membuka kunci sesi.
+            </p>
+            <!-- Hidden Admin Unlock Trigger -->
+            <div class="border-t border-royal-700 pt-4">
+                <button onclick="toggleAdminUnlockBox()" class="text-xs text-gold-400/70 hover:text-gold-300 underline transition">
+                    Otorisasi Pengawas / Reset Sesi
+                </button>
+                <div id="admin-unlock-box" class="hidden mt-4 space-y-3">
+                    <input type="password" id="unlock-pass-input" placeholder="Masukkan Sandi Otorisasi..." class="w-full px-4 py-2.5 rounded-xl bg-royal-950 border border-gold-500/40 text-white text-sm focus:outline-none focus:border-gold-400">
+                    <button onclick="attemptAdminUnlock()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-gold-500 to-amber-600 text-royal-950 font-bold text-sm hover:opacity-90 transition">
+                        Buka Kunci & Reset Ujian
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN GATEWAY MODAL (WITH HIDDEN CREDENTIALS) -->
+    <div id="login-screen" class="fixed inset-0 z-[80] bg-gradient-to-br from-royal-950 via-royal-900 to-purple-950 flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-royal-900/90 glass-panel border border-gold-500/40 rounded-3xl p-8 shadow-2xl shadow-purple-950/80 relative overflow-hidden">
+            <!-- Decorative Glow -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-gold-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-600/30 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10">
+                <div class="flex justify-between items-center mb-6">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-gold-500/20 text-gold-400 border border-gold-500/40 tracking-wider">
+                        ENTERPRISE CBT v4.0
+                    </span>
+                    <button onclick="toggleLanguage()" class="px-3 py-1 rounded-xl bg-royal-800 hover:bg-royal-700 text-gold-300 text-xs font-semibold border border-gold-500/30 transition">
+                        🌐 <span id="login-lang-label">ID / EN</span>
+                    </button>
+                </div>
+
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-gold-500 to-amber-300 flex items-center justify-center text-royal-950 shadow-lg shadow-gold-500/30">
+                        <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    </div>
+                    <h1 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-gold-400 to-amber-500">
+                        ASESMEN LITERASI DIGITAL
+                    </h1>
+                    <p class="text-xs text-purple-200/80 mt-1">Madrasah Tsanawiyah (MTs) • Fase D / Kelas VIII</p>
+                </div>
+
+                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gold-300 uppercase tracking-wider mb-1.5" data-i18n="usernameLabel">Username Akses</label>
+                        <input type="password" id="login-username" required autocomplete="off" placeholder="••••••••"
+                            class="w-full px-4 py-3 rounded-xl bg-royal-950/90 border border-purple-600/50 text-white placeholder-purple-400/40 focus:outline-none focus:border-gold-400 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gold-300 uppercase tracking-wider mb-1.5" data-i18n="passwordLabel">Kata Sandi</label>
+                        <input type="password" id="login-password" required autocomplete="off" placeholder="•••••••••"
+                            class="w-full px-4 py-3 rounded-xl bg-royal-950/90 border border-purple-600/50 text-white placeholder-purple-400/40 focus:outline-none focus:border-gold-400 transition">
+                    </div>
+                    <button type="submit" class="w-full py-3.5 mt-2 rounded-xl bg-gradient-to-r from-gold-400 via-gold-500 to-amber-600 text-royal-950 font-extrabold text-sm tracking-wide shadow-lg shadow-gold-500/25 hover:brightness-110 active:scale-[0.99] transition">
+                        <span data-i18n="loginBtn">MASUK KE PORTAL ASESMEN</span>
+                    </button>
+                </form>
+
+                <div class="mt-6 pt-4 border-t border-purple-800/60 text-center">
+                    <p class="text-[11px] text-purple-300/70">Developed & Architected by</p>
+                    <p class="text-xs font-bold text-gold-400 tracking-wide mt-0.5">AHMAD BUDI LEKSONO</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION SHELL -->
+    <div id="app-shell" class="hidden flex-1 flex flex-col lg:flex-row min-h-screen">
+
+        <!-- SIDEBAR DASHBOARD -->
+        <aside id="sidebar" class="w-full lg:w-80 bg-white dark:bg-royal-900 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-gold-500/20 flex flex-col justify-between shrink-0 transition-all duration-300 z-30">
+            <div>
+                <!-- Brand Header -->
+                <div class="p-5 border-b border-slate-200 dark:border-purple-800/60 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-400 to-purple-700 flex items-center justify-center text-white font-black shadow-md">
+                            ABL
+                        </div>
+                        <div>
+                            <h2 class="font-extrabold text-sm tracking-tight text-royal-900 dark:text-gold-400">FUTURISTIC CBT</h2>
+                            <p class="text-[11px] text-slate-500 dark:text-purple-300">English Literacy • Fable</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleMobileSidebar()" class="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-royal-800 text-slate-700 dark:text-gold-400">
+                        ☰
+                    </button>
+                </div>
+
+                <!-- Collapsible Sidebar Content -->
+                <div id="sidebar-content" class="hidden lg:block p-5 space-y-5">
+                    <!-- Real-time Countdown Timer -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-br from-royal-900 to-purple-950 border border-gold-500/40 text-white shadow-lg">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[11px] uppercase tracking-wider text-gold-300 font-semibold" data-i18n="timeRemaining">Sisa Waktu (80 Menit)</span>
+                            <span id="timer-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        </div>
+                        <div id="timer-display" class="text-3xl font-black tracking-widest text-gold-400 font-mono">
+                            80:00
+                        </div>
+                        <p class="text-[10px] text-purple-200/70 mt-1" data-i18n="autoStopNotice">Otomatis berhenti & terkunci saat waktu habis.</p>
+                    </div>
+
+                    <!-- Active Student Profile Card -->
+                    <div class="p-4 rounded-2xl bg-slate-100 dark:bg-royal-950/70 border border-slate-200 dark:border-purple-800/60 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-purple-700 dark:text-gold-400 uppercase tracking-wider" data-i18n="studentIdentity">Identitas Murid</span>
+                            <button onclick="openIdentityModal()" class="text-[11px] px-2.5 py-1 rounded-lg bg-gold-500/20 text-amber-700 dark:text-gold-300 font-semibold hover:bg-gold-500/30 transition" data-i18n="editBtn">
+                                Ubah / Reset
+                            </button>
+                        </div>
+                        <div class="text-xs space-y-1 text-slate-700 dark:text-slate-300">
+                            <p><span class="text-slate-400">Nama:</span> <strong id="disp-nama">-</strong></p>
+                            <p><span class="text-slate-400">Kelas:</span> <strong id="disp-kelas">-</strong> | <span class="text-slate-400">No:</span> <strong id="disp-presensi">-</strong></p>
+                            <p><span class="text-slate-400">Madrasah:</span> <strong id="disp-madrasah">-</strong></p>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Menu -->
+                    <nav class="space-y-1.5">
+                        <button onclick="switchView('exam')" id="nav-btn-exam" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold bg-gradient-to-r from-gold-500 to-amber-500 text-royal-950 shadow-md transition">
+                            <span>📝</span> <span data-i18n="menuExam">Lembar Asesmen (40 Soal)</span>
+                        </button>
+                        <button onclick="switchView('kisi')" id="nav-btn-kisi" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-royal-800 transition">
+                            <span>📊</span> <span data-i18n="menuBlueprint">Kisi-Kisi & Pedoman</span>
+                        </button>
+                        <button onclick="switchView('certificate')" id="nav-btn-cert" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-royal-800 transition">
+                            <span>🏆</span> <span data-i18n="menuCertificate">Sertifikat Kelulusan (Min. 80)</span>
+                        </button>
+                    </nav>
+
+                    <!-- Controls: Language, Theme, Lock Out -->
+                    <div class="pt-3 border-t border-slate-200 dark:border-purple-800/60 space-y-2">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="toggleLanguage()" class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-royal-800 text-xs font-semibold text-slate-800 dark:text-gold-300 border border-slate-200 dark:border-gold-500/20 hover:border-gold-400 transition">
+                                🌐 <span id="sidebar-lang-text">Bahasa: ID</span>
+                            </button>
+                            <button onclick="toggleTheme()" class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-royal-800 text-xs font-semibold text-slate-800 dark:text-gold-300 border border-slate-200 dark:border-gold-500/20 hover:border-gold-400 transition">
+                                <span id="theme-icon">☀️</span> <span id="theme-text">Terang</span>
+                            </button>
+                        </div>
+                        <button onclick="manualLockOut()" class="w-full py-2.5 px-4 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-600 dark:text-red-400 border border-red-500/40 text-xs font-bold flex items-center justify-center gap-2 transition">
+                            <span>🔒</span> <span data-i18n="lockOutBtn">LOCK OUT APLIKASI</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Developer Credit Footer -->
+            <div class="hidden lg:block p-4 border-t border-slate-200 dark:border-purple-800/60 bg-slate-50 dark:bg-royal-950/50 text-center">
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest">Creator & Lead Architect</p>
+                <p class="text-xs font-extrabold text-purple-800 dark:text-gold-400 mt-0.5">AHMAD BUDI LEKSONO</p>
+            </div>
+        </aside>
+
+        <!-- MAIN WORKSPACE -->
+        <main class="flex-1 flex flex-col min-w-0">
+
+            <!-- Top Status Bar -->
+            <header class="bg-white/80 dark:bg-royal-900/80 glass-panel border-b border-slate-200 dark:border-gold-500/20 px-6 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-20">
+                <div>
+                    <h1 class="text-base sm:text-lg font-extrabold text-royal-900 dark:text-white">
+                        Asesmen Sumatif Literasi Membaca Bahasa Inggris
+                    </h1>
+                    <p class="text-xs text-slate-500 dark:text-purple-300">
+                        Tema: <span class="text-amber-600 dark:text-gold-400 font-semibold">Narrative Text: Fable</span> • Anti-Cheat Guard Aktif
+                    </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-royal-800 text-purple-900 dark:text-gold-300 text-xs font-bold border border-purple-200 dark:border-gold-500/30">
+                        Terjawab: <span id="answered-count">0</span> / 40
+                    </div>
+                    <button onclick="submitAssessment()" id="btn-submit-exam" class="px-5 py-2 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-royal-950 font-extrabold text-xs shadow-md hover:brightness-110 transition">
+                        <span data-i18n="finishBtn">SELESAI & NILAI</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- VIEW 1: IDENTITY SETUP MODAL (MANDATORY AT START & TRIGGERS RANDOMIZATION) -->
+            <div id="identity-modal" class="fixed inset-0 z-[70] bg-royal-950/85 glass-panel flex items-center justify-center p-4">
+                <div class="max-w-lg w-full bg-white dark:bg-royal-900 border-2 border-gold-500/50 rounded-3xl p-6 sm:p-8 shadow-2xl">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-gold-400 to-purple-700 flex items-center justify-center text-white font-bold text-xl">
+                            🎓
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-extrabold text-royal-900 dark:text-gold-400" data-i18n="idModalTitle">Registrasi Identitas Murid</h2>
+                            <p class="text-xs text-slate-500 dark:text-purple-200" data-i18n="idModalSub">Perubahan identitas akan mereset jawaban dan mengacak urutan aktivitas soal secara otomatis.</p>
+                        </div>
+                    </div>
+
+                    <form onsubmit="saveStudentIdentity(event)" class="space-y-4 mt-5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-gold-300 mb-1" data-i18n="labelName">Nama Lengkap Murid</label>
+                            <input type="text" id="input-nama" required placeholder="Contoh: Muhammad Rayyan"
+                                class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-royal-950 border border-slate-300 dark:border-purple-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-gold-400">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-gold-300 mb-1" data-i18n="labelClass">Kelas</label>
+                                <input type="text" id="input-kelas" required placeholder="Contoh: VIII-A"
+                                    class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-royal-950 border border-slate-300 dark:border-purple-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-gold-400">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-gold-300 mb-1" data-i18n="labelNumber">Nomor Presensi</label>
+                                <input type="text" id="input-presensi" required placeholder="Contoh: 14"
+                                    class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-royal-950 border border-slate-300 dark:border-purple-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-gold-400">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 dark:text-gold-300 mb-1" data-i18n="labelSchool">Asal Madrasah</label>
+                            <input type="text" id="input-madrasah" required placeholder="Contoh: MTs Negeri 1 Malang"
+                                class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-royal-950 border border-slate-300 dark:border-purple-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-gold-400">
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-800 dark:text-gold-300">
+                            ⚠️ <strong>Perhatian Keamanan:</strong> Selama ujian berlangsung, dilarang berpindah tab browser, membuka pencarian lain, menyalin teks (Copy/Paste), atau mengunci layar perangkat. Pelanggaran akan memicu <strong>LOCK OUT OTOMATIS</strong>.
+                        </div>
+
+                        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-gold-400 via-gold-500 to-amber-600 text-royal-950 font-extrabold text-sm shadow-lg hover:brightness-105 transition">
+                            <span data-i18n="startExamBtn">MULAI ASESMEN & ACAK SOAL</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- VIEW 2: EXAM WORKSPACE (STIMULUS + QUESTION + NAVIGATION) -->
+            <div id="view-exam" class="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6">
+                
+                <!-- Question Navigator Grid -->
+                <div class="bg-white dark:bg-royal-900/90 border border-slate-200 dark:border-gold-500/25 rounded-2xl p-4 shadow-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-purple-800 dark:text-gold-400" data-i18n="navTitle">Navigasi Nomor Soal (Urutan Teracak Otomatis)</span>
+                        <div class="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-gold-500 inline-block"></span> Aktif</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block"></span> Terjawab</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-slate-300 dark:bg-royal-800 inline-block"></span> Belum</span>
+                        </div>
+                    </div>
+                    <div id="question-nav-grid" class="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-20 gap-1.5">
+                        <!-- Dynamically Populated Buttons 1..40 -->
+                    </div>
+                </div>
+
+                <!-- Split Content: Reading Stimulus & Active Question -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    <!-- Left Column: Stimulus Text -->
+                    <div class="lg:col-span-6 bg-white dark:bg-royal-900 border border-slate-200 dark:border-purple-700/60 rounded-3xl p-6 shadow-lg">
+                        <div class="flex items-center justify-between mb-3">
+                            <span id="stimulus-badge" class="px-3 py-1 rounded-full text-[11px] font-bold bg-purple-100 dark:bg-purple-900/80 text-purple-800 dark:text-gold-300 border border-purple-300 dark:border-gold-500/30">
+                                STIMULUS 1
+                            </span>
+                            <span class="text-[11px] text-slate-400 italic">Original Assessment Text</span>
+                        </div>
+                        <h3 id="stimulus-title" class="text-lg sm:text-xl font-extrabold text-royal-900 dark:text-gold-400 mb-4">
+                            The Fox and the Rain Jar
+                        </h3>
+                        <div id="stimulus-body" class="prose prose-sm dark:prose-invert max-w-none text-slate-700 dark:text-slate-200 leading-relaxed text-justify bg-slate-50 dark:bg-royal-950/60 p-5 rounded-2xl border border-slate-200/80 dark:border-purple-800/50">
+                            <!-- Stimulus paragraph rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Interactive Question Card -->
+                    <div class="lg:col-span-6 bg-white dark:bg-royal-900 border border-slate-200 dark:border-gold-500/30 rounded-3xl p-6 shadow-lg flex flex-col justify-between min-h-[420px]">
+                        <div>
+                            <!-- Question Meta Header -->
+                            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-200 dark:border-purple-800/60">
+                                <div class="flex items-center gap-2">
+                                    <span id="q-number-badge" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-royal-950 font-black text-xs">
+                                        SOAL #1
+                                    </span>
+                                    <span id="q-type-badge" class="px-3 py-1 rounded-xl bg-slate-100 dark:bg-royal-800 text-purple-800 dark:text-purple-200 text-xs font-semibold">
+                                        Pilihan Ganda
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-2 text-xs">
+                                    <span id="q-domain-badge" class="text-slate-500 dark:text-gold-300 font-medium">Literal</span>
+                                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold" id="q-points-badge">1 Poin</span>
+                                </div>
+                            </div>
+
+                            <!-- Question Prompt -->
+                            <p id="q-prompt" class="text-base font-bold text-slate-900 dark:text-white mb-5 leading-snug">
+                                Where did Fox find the clay jar?
+                            </p>
+
+                            <!-- Dynamic Answer Area -->
+                            <div id="q-answer-area" class="space-y-3">
+                                <!-- Rendered dynamically based on question type -->
+                            </div>
+                        </div>
+
+                        <!-- Previous / Next Navigation Buttons -->
+                        <div class="flex items-center justify-between pt-6 mt-6 border-t border-slate-200 dark:border-purple-800/60">
+                            <button onclick="prevQuestion()" id="btn-prev" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-royal-800 hover:bg-slate-200 dark:hover:bg-royal-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition disabled:opacity-40">
+                                ← <span data-i18n="prevBtn">Sebelumnya</span>
+                            </button>
+                            <button onclick="nextQuestion()" id="btn-next" class="px-5 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold shadow transition">
+                                <span data-i18n="nextBtn">Selanjutnya</span> →
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- VIEW 3: KISI-KISI & PEDOMAN PENSKORAN -->
+            <div id="view-kisi" class="hidden flex-1 p-4 sm:p-6 max-w-6xl w-full mx-auto space-y-6">
+                <div class="bg-white dark:bg-royal-900 border border-slate-200 dark:border-gold-500/30 rounded-3xl p-6 shadow-lg">
+                    <h2 class="text-xl font-extrabold text-royal-900 dark:text-gold-400 mb-2">Kisi-Kisi & Pedoman Asesmen Sumatif</h2>
+                    <p class="text-xs text-slate-500 dark:text-purple-200 mb-6">Madrasah Tsanawiyah (MTs) • Fase D / Kelas VIII • Total 40 Soal (Skor Mentah Maksimal 70 -> Skala 100)</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-royal-950/70 border border-slate-200 dark:border-purple-800">
+                            <h3 class="font-bold text-sm text-purple-800 dark:text-gold-300 mb-2">Sebaran Ranah Literasi</h3>
+                            <ul class="text-xs space-y-1.5 text-slate-700 dark:text-slate-300">
+                                <li>• <strong>Literal (10 Soal):</strong> Detail eksplisit tokoh, tempat, waktu, urutan.</li>
+                                <li>• <strong>Inferensial (10 Soal):</strong> Kesimpulan tersirat & hubungan sebab-akibat.</li>
+                                <li>• <strong>Interpretasi (10 Soal):</strong> Makna kosakata, karakter, pesan, alur.</li>
+                                <li>• <strong>Evaluasi (10 Soal):</strong> Menilai efektivitas tindakan, alasan, dan bukti.</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-royal-950/70 border border-slate-200 dark:border-purple-800">
+                            <h3 class="font-bold text-sm text-purple-800 dark:text-gold-300 mb-2">Rumus Nilai Akhir & Kriteria</h3>
+                            <p class="text-xs text-slate-700 dark:text-slate-300 mb-2">
+                                <code>Nilai Akhir = (Skor Mentah / 70) × 100</code>
+                            </p>
+                            <ul class="text-xs space-y-1 text-slate-700 dark:text-slate-300">
+                                <li>• <strong>86 – 100:</strong> Sangat Baik (Lulus Sertifikat)</li>
+                                <li>• <strong>80 – 85:</strong> Baik (Batas Minimal Sertifikat: 80)</li>
+                                <li>• <strong>56 – 79:</strong> Cukup / Perlu Pengayaan</li>
+                                <li>• <strong>0 – 55:</strong> Perlu Bimbingan</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-purple-100 dark:bg-royal-800 text-royal-900 dark:text-gold-300">
+                                    <th class="p-3 rounded-tl-xl">Stimulus Teks</th>
+                                    <th class="p-3">Nomor Asli</th>
+                                    <th class="p-3">Bentuk Soal</th>
+                                    <th class="p-3 rounded-tr-xl">Fokus Kompetensi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 dark:divide-purple-800/60">
+                                <tr><td class="p-3 font-semibold">1. The Fox and the Rain Jar</td><td class="p-3">1 – 8</td><td class="p-3">PG, PGK, Matching, Short, TF, Uraian</td><td class="p-3">Strategi pemecahan masalah & kesabaran</td></tr>
+                                <tr><td class="p-3 font-semibold">2. The Tortoise's New Path</td><td class="p-3">9 – 16</td><td class="p-3">PG, PGK, Matching, Short, TF, Uraian</td><td class="p-3">Perencanaan & keselamatan vs kecepatan</td></tr>
+                                <tr><td class="p-3 font-semibold">3. Roots That Protect the Shore</td><td class="p-3">17 – 24</td><td class="p-3">PG, PGK, Matching, Short, TF, Uraian</td><td class="p-3">Konservasi ekosistem hutan mangrove</td></tr>
+                                <tr><td class="p-3 font-semibold">4. Saturday at the School Garden</td><td class="p-3">25 – 32</td><td class="p-3">PG, PGK, Matching, Short, TF, Uraian</td><td class="p-3">Kolaborasi tim & evaluasi hasil</td></tr>
+                                <tr><td class="p-3 font-semibold">5. The Hornbill and the Shiny Seed</td><td class="p-3">33 – 40</td><td class="p-3">PG, PGK, Matching, Short, TF, Uraian</td><td class="p-3">Kepedulian bersama & nilai kebermanfaatan</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 4: RESULT & CERTIFICATE VIEW -->
+            <div id="view-certificate" class="hidden flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto space-y-6">
+                
+                <!-- Score Summary Banner -->
+                <div class="bg-white dark:bg-royal-900 border border-slate-200 dark:border-gold-500/40 rounded-3xl p-6 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-gold-400">Hasil Evaluasi Asesmen</span>
+                        <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1" id="result-status-title">Belum Diselesaikan</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-300 mt-1" id="result-status-desc">Selesaikan asesmen untuk melihat rincian skor dan mengunduh sertifikat.</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-center px-5 py-3 rounded-2xl bg-slate-100 dark:bg-royal-950 border border-slate-200 dark:border-purple-800">
+                            <span class="block text-[10px] uppercase text-slate-400">Skor Mentah</span>
+                            <span id="raw-score-display" class="text-xl font-black text-purple-700 dark:text-purple-300">0 / 70</span>
+                        </div>
+                        <div class="text-center px-6 py-3 rounded-2xl bg-gradient-to-br from-gold-400 to-amber-600 text-royal-950 shadow-lg">
+                            <span class="block text-[10px] uppercase font-bold">Nilai Akhir</span>
+                            <span id="final-score-display" class="text-3xl font-black">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Certificate Container (Unlocked Only If Score >= 80) -->
+                <div id="cert-unlocked-wrapper" class="hidden space-y-4">
+                    <div class="flex justify-end no-print">
+                        <button onclick="window.print()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-royal-950 font-extrabold text-xs shadow-lg hover:brightness-110 transition flex items-center gap-2">
+                            <span>🖨️</span> Cetak / Simpan PDF Sertifikat
+                        </button>
+                    </div>
+
+                    <div id="certificate-printable" class="relative bg-gradient-to-br from-royal-950 via-royal-900 to-purple-950 text-white p-8 sm:p-12 rounded-3xl border-4 border-gold-400 shadow-2xl overflow-hidden text-center">
+                        <!-- Ornate Inner Border -->
+                        <div class="border-2 border-gold-500/40 rounded-2xl p-6 sm:p-10 relative z-10">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-tr from-gold-400 to-amber-200 flex items-center justify-center text-royal-950 font-black text-2xl shadow-lg">
+                                ★
+                            </div>
+                            <p class="text-xs uppercase tracking-[0.3em] text-gold-300 font-semibold">Certificate of Excellence</p>
+                            <h1 class="font-serif text-2xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gold-200 via-gold-400 to-amber-500 mt-2 mb-4">
+                                SERTIFIKAT KELULUSAN ASESMEN
+                            </h1>
+                            <p class="text-xs sm:text-sm text-purple-200 max-w-xl mx-auto">
+                                Diberikan dengan bangga kepada peserta didik yang telah menyelesaikan <strong>Asesmen Sumatif Literasi Membaca Bahasa Inggris (Narrative Text: Fable)</strong> dengan predikat memuaskan:
+                            </p>
+
+                            <div class="my-6 py-4 border-y border-gold-500/30">
+                                <h2 id="cert-student-name" class="text-2xl sm:text-3xl font-extrabold text-gold-300 tracking-wide uppercase">
+                                    NAMA PESERTA DIDIK
+                                </h2>
+                                <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                                    Kelas: <span id="cert-student-class" class="font-bold text-white">-</span> • 
+                                    No. Presensi: <span id="cert-student-num" class="font-bold text-white">-</span> • 
+                                    Madrasah: <span id="cert-student-school" class="font-bold text-white">-</span>
+                                </p>
+                            </div>
+
+                            <div class="inline-block px-6 py-2 rounded-full bg-gold-500/20 border border-gold-400 text-gold-300 font-extrabold text-sm mb-8">
+                                PEROLEHAN SKOR AKHIR: <span id="cert-final-score" class="text-white text-lg">85</span> / 100
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-6 pt-4 text-xs text-purple-200 max-w-lg mx-auto">
+                                <div class="text-center">
+                                    <p class="text-slate-400">Tanggal Penerbitan</p>
+                                    <p id="cert-date" class="font-bold text-white mt-1">25 November 2026</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-slate-400">Architect & Assessor</p>
+                                    <p class="font-extrabold text-gold-400 mt-1 underline">AHMAD BUDI LEKSONO</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Locked Certificate Notice (If Score < 80) -->
+                <div id="cert-locked-wrapper" class="bg-white dark:bg-royal-900/80 border border-slate-200 dark:border-purple-800 rounded-3xl p-8 text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-3xl">
+                        🏅
+                    </div>
+                    <h3 class="text-lg font-extrabold text-slate-900 dark:text-white mb-2">Sertifikat Terkunci (Syarat Minimal Skor: 80)</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-300 max-w-md mx-auto">
+                        Sertifikat kelulusan resmi hanya diterbitkan secara otomatis apabila Anda menyelesaikan seluruh asesmen dan memperoleh nilai akhir minimal <strong>80</strong>.
+                    </p>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        /* =========================================================================
+           1. COMPLETE DATASET: 5 STIMULI & 40 QUESTIONS FROM SOURCE PDF
+           ========================================================================= */
+        const STIMULI = {
+            1: {
+                title: "Stimulus 1 — The Fox and the Rain Jar",
+                text: `During a long dry season, Fox found a clay jar behind an empty shed. A little water lay at the bottom. Fox pushed his nose inside, but the opening was too narrow. He tipped the jar, but it was too heavy. He sat under a tree and looked around. Near the shed, he saw smooth pebbles. "Perhaps small stones can help," he thought. He carried one pebble and dropped it into the jar. The water rose a little. Fox repeated the action many times. When the water reached the rim, he drank happily. A sparrow had watched him. "You did not give up," said the sparrow. Fox replied, "A patient mind can find a simple way."`
+            },
+            2: {
+                title: "Stimulus 2 — The Tortoise's New Path",
+                text: `After three days of rain, Goat hurt his leg on the far side of the valley. Tortoise carried some healing leaves and wanted to reach Goat. Rabbit said, "I know the fastest path. Follow me across the hill." Tortoise looked at the wet slope. Loose stones covered the path, so he chose a longer route beside the stream, marked by flat rocks. Rabbit laughed and ran down the hill. His feet slipped on the mud, but a low branch stopped him from falling into a ditch. Tortoise called Deer, and Deer pulled Rabbit to a safe place. Then Tortoise continued to Goat and gave him the leaves. Rabbit apologized. "Fast is not always best," he said. Tortoise answered, "A good plan considers the path, not only the time."`
+            },
+            3: {
+                title: "Stimulus 3 — Roots That Protect the Shore",
+                text: `Mangrove forests grow where rivers meet the sea. Their tangled roots slow down waves and hold mud, so less soil is washed away. The roots also create sheltered spaces for small fish, crabs, and young sea animals. When mangrove leaves fall and break down, they add nutrients to the water and soil. People benefit too because healthy mangroves support fisheries and provide shade. However, cutting mangroves for buildings can weaken the coast. Planting new seedlings helps only when water can flow naturally, plastic waste is controlled, and animals do not destroy the young plants. Protecting an existing forest often works faster than planting alone because mature roots are already working. A village can help by mapping the forest, keeping waste out, and creating no-cut zones.`
+            },
+            4: {
+                title: "Stimulus 4 — Saturday at the School Garden",
+                text: `Last Saturday, Class VIII-B met in the school garden. The class planned to grow spinach in three beds. Before planting, Maya noticed that the soil in Bed 2 was dry and the hose was broken. The students divided the work. Rafi repaired the hose with the teacher. Sinta mixed compost into the soil. Maya made labels, while the other students cleared plastic waste. At noon, rain suddenly fell. They moved the seed trays under a roof and covered the compost. The following week, two beds had sprouts, but Bed 2 did not. The students checked the bed and learned that water did not reach its far end. They moved the hose and watered the dry area. Maya said, "A result can teach more than praise."`
+            },
+            5: {
+                title: "Stimulus 5 — The Hornbill and the Shiny Seed",
+                text: `One morning, Hornbill found a shiny seed under a tree. Magpie wanted to display it because it glittered in the sunlight. Monkey wanted to trade it for sweet fruit. Old Turtle said, "A seed belongs in the soil." Hornbill planted it near a spring. For several days, no rain came, so Hornbill returned to water the seed. Squirrel suggested a common place where all the forest animals could help. Hornbill agreed. The animals brought leaves, water, and soft soil. After many weeks, a young tree grew. Later, it gave fruit and shade to the animals. Magpie looked at the tree and said, "Its value is not only in how it shines." The animals learned that shared care can make a small gift useful to everyone.`
+            }
+        };
+
+        // Question Types: 'pg' (1pt), 'pgk' (2pts), 'match' (2pts), 'short' (2pts), 'tf' (2pts), 'essay' (3pts)
+        const RAW_QUESTIONS = [
+            // STIMULUS 1 (1-8)
+            { id: 1, stim: 1, domain: "Literal", type: "pg", pts: 1, prompt: "Where did Fox find the clay jar?", options: ["A. Near a river", "B. Behind an empty shed", "C. Under a large tree", "D. Inside a farmer's house"], correct: 1 },
+            { id: 2, stim: 1, domain: "Literal", type: "pg", pts: 1, prompt: "What did Fox put into the jar?", options: ["A. Leaves", "B. Sand", "C. Smooth pebbles", "D. A piece of wood"], correct: 2 },
+            { id: 3, stim: 1, domain: "Inferensial", type: "pg", pts: 1, prompt: "Why did Fox's first two attempts fail?", options: ["A. The opening was narrow and the jar was heavy.", "B. The water was dirty and dangerous.", "C. The sparrow scared him away.", "D. The pebbles were too large."], correct: 0 },
+            { id: 4, stim: 1, domain: "Inferensial", type: "pgk", pts: 2, prompt: "Choose TWO ideas that are supported by the text.", options: ["A. Fox solved the problem by changing his strategy.", "B. Fox needed a powerful machine to get the water.", "C. The sparrow gave Fox all the pebbles.", "D. Small actions can produce a useful result when repeated patiently."], correct: [0, 3] },
+            { id: 5, stim: 1, domain: "Interpretasi", type: "match", pts: 2, prompt: "Match the words in Column A with their meanings in Column B.", left: ["1. narrow", "2. rim", "3. give up", "4. patient"], right: ["A. the top edge of a container", "B. not wide", "C. able to wait calmly", "D. stop trying"], correct: ["B", "A", "D", "C"] },
+            { id: 6, stim: 1, domain: "Interpretasi", type: "short", pts: 2, prompt: "What character trait does Fox show? Give one piece of evidence from the text.", keywords: ["patient", "resourceful", "smart", "clever", "pebble", "stone", "give up", "repeat"] },
+            { id: 7, stim: 1, domain: "Evaluasi", type: "tf", pts: 2, prompt: `"The fable suggests that success always needs powerful tools." Choose True or False and give a brief reason from the text.`, correctTF: "False", keywords: ["pebble", "stone", "patient", "small", "simple", "tool"] },
+            { id: 8, stim: 1, domain: "Evaluasi", type: "essay", pts: 3, prompt: "Was Fox's solution effective and reasonably safe? Explain your answer using TWO details from the text.", keywords: ["yes", "effective", "safe", "pebble", "water", "rose", "rim", "drank", "small"] },
+
+            // STIMULUS 2 (9-16)
+            { id: 9, stim: 2, domain: "Literal", type: "pg", pts: 1, prompt: "Who hurt his leg?", options: ["A. Rabbit", "B. Tortoise", "C. Goat", "D. Deer"], correct: 2 },
+            { id: 10, stim: 2, domain: "Literal", type: "pg", pts: 1, prompt: "Which route did Tortoise choose?", options: ["A. The steep path over the hill", "B. The longer route beside the stream", "C. The road through the village", "D. The path through the forest"], correct: 1 },
+            { id: 11, stim: 2, domain: "Inferensial", type: "pg", pts: 1, prompt: "Why did Rabbit slip?", options: ["A. He carried too many leaves.", "B. He was helping Goat.", "C. He followed the flat rocks.", "D. He ran on a wet, muddy slope."], correct: 3 },
+            { id: 12, stim: 2, domain: "Inferensial", type: "pgk", pts: 2, prompt: "Choose TWO conclusions supported by the text.", options: ["A. Careful planning can be more important than speed.", "B. Tortoise refused to help Rabbit.", "C. A route should be judged by its safety as well as its time.", "D. The rain made the valley completely dry."], correct: [0, 2] },
+            { id: 13, stim: 2, domain: "Interpretasi", type: "match", pts: 2, prompt: "Match each character with the correct action.", left: ["1. Goat", "2. Rabbit", "3. Tortoise", "4. Deer"], right: ["A. suggested the fastest path", "B. pulled Rabbit to safety", "C. needed healing leaves", "D. carried leaves and chose a safer route"], correct: ["C", "A", "D", "B"] },
+            { id: 14, stim: 2, domain: "Interpretasi", type: "short", pts: 2, prompt: "Why did Tortoise call Deer?", keywords: ["help", "rabbit", "pull", "safe", "slip", "ditch", "mud"] },
+            { id: 15, stim: 2, domain: "Evaluasi", type: "tf", pts: 2, prompt: `"Tortoise reached Goat safely because he used a safer route." Choose True or False and give a brief reason from the text.`, correctTF: "True", keywords: ["stream", "flat", "rock", "safe", "longer", "goat", "leaves"] },
+            { id: 16, stim: 2, domain: "Evaluasi", type: "essay", pts: 3, prompt: "Evaluate Rabbit's advice to use the fastest path. Was it reliable in this situation? Explain with TWO details from the text.", keywords: ["no", "unreliable", "unsafe", "wet", "mud", "loose", "stone", "slip", "hill"] },
+
+            // STIMULUS 3 (17-24)
+            { id: 17, stim: 3, domain: "Literal", type: "pg", pts: 1, prompt: "Where do mangrove forests usually grow?", options: ["A. Where rivers meet the sea", "B. On dry mountain peaks", "C. In the middle of cities", "D. Beside desert roads"], correct: 0 },
+            { id: 18, stim: 3, domain: "Literal", type: "pg", pts: 1, prompt: "Which benefit is mentioned in the text?", options: ["A. Mangroves make roads wider.", "B. Mangroves provide electricity.", "C. Mangroves stop all rain.", "D. Mangroves support fisheries and provide shade."], correct: 3 },
+            { id: 19, stim: 3, domain: "Inferensial", type: "pg", pts: 1, prompt: "Why can protecting an existing mangrove forest work faster than planting alone?", options: ["A. Old trees need no water.", "B. Mature roots are already protecting the shore.", "C. New seedlings grow in one day.", "D. Existing forests have no animals."], correct: 1 },
+            { id: 20, stim: 3, domain: "Inferensial", type: "pgk", pts: 2, prompt: "Which THREE actions are supported by the text as helpful for a village?", options: ["A. Map the mangrove forest.", "B. Keep plastic waste out.", "C. Build houses in the root areas.", "D. Create no-cut zones."], correct: [0, 1, 3] },
+            { id: 21, stim: 3, domain: "Interpretasi", type: "match", pts: 2, prompt: "Match each term with its meaning in the text.", left: ["1. sheltered spaces", "2. nutrients", "3. seedlings", "4. no-cut zones"], right: ["A. useful substances that help growth", "B. areas where cutting is not allowed", "C. young plants", "D. protected places"], correct: ["D", "A", "C", "B"] },
+            { id: 22, stim: 3, domain: "Interpretasi", type: "short", pts: 2, prompt: "How do mangrove roots help protect the shore?", keywords: ["slow", "wave", "hold", "mud", "soil", "wash"] },
+            { id: 23, stim: 3, domain: "Evaluasi", type: "tf", pts: 2, prompt: `"Planting seedlings alone always solves damage to a mangrove coast." Choose True or False and give a brief reason from the text.`, correctTF: "False", keywords: ["water", "flow", "waste", "plastic", "animal", "condition", "existing", "mature"] },
+            { id: 24, stim: 3, domain: "Evaluasi", type: "essay", pts: 3, prompt: "A plan suggests cutting old mangroves and planting new ones somewhere else. Is this the best plan according to the text? Explain with TWO pieces of evidence.", keywords: ["no", "not", "weaken", "coast", "mature", "root", "already", "water", "waste", "condition"] },
+
+            // STIMULUS 4 (25-32)
+            { id: 25, stim: 4, domain: "Literal", type: "pg", pts: 1, prompt: "When did Class VIII-B meet in the garden?", options: ["A. Last Saturday", "B. Last Sunday", "C. On Monday morning", "D. During a holiday"], correct: 0 },
+            { id: 26, stim: 4, domain: "Literal", type: "pg", pts: 1, prompt: "What did the class plan to grow?", options: ["A. Rice", "B. Flowers", "C. Spinach", "D. Mango trees"], correct: 2 },
+            { id: 27, stim: 4, domain: "Inferensial", type: "pg", pts: 1, prompt: "Why did Bed 2 have no sprouts at first?", options: ["A. The students planted flowers there.", "B. Water did not reach the far end of the bed.", "C. The class removed all the soil.", "D. Rain washed away every seed."], correct: 1 },
+            { id: 28, stim: 4, domain: "Inferensial", type: "pgk", pts: 2, prompt: "Choose TWO conclusions supported by the text.", options: ["A. The students worked together by dividing tasks.", "B. The students changed their plan when the weather changed.", "C. The labels caused Bed 2 to fail.", "D. The students ignored the problem in Bed 2."], correct: [0, 1] },
+            { id: 29, stim: 4, domain: "Interpretasi", type: "match", pts: 2, prompt: "Match each problem with the response that followed it.", left: ["1. The soil in Bed 2 was dry.", "2. The hose was broken.", "3. There was plastic waste.", "4. Rain suddenly fell."], right: ["A. The students cleared it.", "B. The seed trays were moved under a roof.", "C. The students watered the dry area.", "D. Rafi repaired it with the teacher."], correct: ["C", "D", "A", "B"] },
+            { id: 30, stim: 4, domain: "Interpretasi", type: "short", pts: 2, prompt: `What does Maya mean by "A result can teach more than praise"?`, keywords: ["learn", "mistake", "problem", "fail", "improve", "result", "water", "lesson"] },
+            { id: 31, stim: 4, domain: "Evaluasi", type: "tf", pts: 2, prompt: `"The students stopped gardening after Bed 2 failed." Choose True or False and give a brief reason from the text.`, correctTF: "False", keywords: ["check", "move", "hose", "water", "dry", "fix", "continue"] },
+            { id: 32, stim: 4, domain: "Evaluasi", type: "essay", pts: 3, prompt: "Do you agree that the students were successful even though one bed failed at first? Explain with TWO details from the text.", keywords: ["yes", "agree", "work", "together", "divide", "rain", "roof", "check", "hose", "water", "sprout"] },
+
+            // STIMULUS 5 (33-40)
+            { id: 33, stim: 5, domain: "Literal", type: "pg", pts: 1, prompt: "Who said that the seed belonged in the soil?", options: ["A. Magpie", "B. Monkey", "C. Squirrel", "D. Old Turtle"], correct: 3 },
+            { id: 34, stim: 5, domain: "Literal", type: "pg", pts: 1, prompt: "What did the tree provide when it grew?", options: ["A. Fruit and shade", "B. Gold and jewels", "C. A new spring", "D. A shiny nest"], correct: 0 },
+            { id: 35, stim: 5, domain: "Inferensial", type: "pg", pts: 1, prompt: "Why did Hornbill return to water the seed?", options: ["A. The seed was already a large tree.", "B. Magpie asked him to hide it.", "C. There had been no rain for several days.", "D. Monkey wanted to eat the soil."], correct: 2 },
+            { id: 36, stim: 5, domain: "Inferensial", type: "pgk", pts: 2, prompt: "Choose TWO ideas supported by the fable.", options: ["A. An object's value can be greater when it benefits many beings.", "B. Cooperation helped the seed grow into a useful tree.", "C. Magpie planted and cared for the seed alone.", "D. The animals learned that shiny things are always useless."], correct: [0, 1] },
+            { id: 37, stim: 5, domain: "Interpretasi", type: "match", pts: 2, prompt: "Match each word or phrase with its meaning in the story.", left: ["1. display", "2. trade", "3. common place", "4. useful"], right: ["A. exchange one thing for another", "B. helpful or practical for a purpose", "C. show something so others can see it", "D. a place shared by everyone"], correct: ["C", "A", "D", "B"] },
+            { id: 38, stim: 5, domain: "Interpretasi", type: "short", pts: 2, prompt: "How did Magpie's view of the seed change?", keywords: ["shine", "glitter", "display", "useful", "value", "benefit", "fruit", "shade"] },
+            { id: 39, stim: 5, domain: "Evaluasi", type: "tf", pts: 2, prompt: `"The seed became useful because Hornbill kept it secret." Choose True or False and give a brief reason from the text.`, correctTF: "False", keywords: ["share", "care", "animal", "common", "water", "leaves", "soil", "together"] },
+            { id: 40, stim: 5, domain: "Evaluasi", type: "essay", pts: 3, prompt: "Do you agree with Old Turtle's advice that a seed belongs in the soil? Explain using TWO details from the fable.", keywords: ["yes", "agree", "soil", "grow", "tree", "fruit", "shade", "water", "care"] }
+        ];
+
+        /* =========================================================================
+           2. APPLICATION STATE & INTERNATIONALIZATION
+           ========================================================================= */
+        const EXAM_DURATION_SECONDS = 80 * 60; // 80 minutes exact
+        let state = {
+            isAuthenticated: false,
+            isLockedOut: false,
+            examActive: false,
+            examSubmitted: false,
+            lang: 'id',
+            theme: 'dark',
+            student: { nama: '', kelas: '', presensi: '', madrasah: '' },
+            questions: [], // Shuffled copy of RAW_QUESTIONS
+            currentIdx: 0,
+            answers: {}, // keyed by question id
+            timeLeft: EXAM_DURATION_SECONDS,
+            timerInterval: null,
+            rawScore: 0,
+            finalScore: 0
+        };
+
+        const I18N = {
+            id: {
+                lockoutTitle: "SISTEM TERKUNCI (LOCK OUT)",
+                lockoutDesc: "Sesuai peraturan asesmen, murid tidak dapat melanjutkan pengerjaan. Hubungi pengawas / administrator untuk membuka kunci sesi.",
+                usernameLabel: "Username Akses",
+                passwordLabel: "Kata Sandi",
+                loginBtn: "MASUK KE PORTAL ASESMEN",
+                timeRemaining: "Sisa Waktu (80 Menit)",
+                autoStopNotice: "Otomatis berhenti & terkunci saat waktu habis.",
+                studentIdentity: "Identitas Murid",
+                editBtn: "Ubah / Reset",
+                menuExam: "Lembar Asesmen (40 Soal)",
+                menuBlueprint: "Kisi-Kisi & Pedoman",
+                menuCertificate: "Sertifikat Kelulusan (Min. 80)",
+                lockOutBtn: "LOCK OUT APLIKASI",
+                finishBtn: "SELESAI & NILAI",
+                idModalTitle: "Registrasi Identitas Murid",
+                idModalSub: "Perubahan identitas akan mereset jawaban dan mengacak urutan aktivitas soal secara otomatis.",
+                labelName: "Nama Lengkap Murid",
+                labelClass: "Kelas",
+                labelNumber: "Nomor Presensi",
+                labelSchool: "Asal Madrasah",
+                startExamBtn: "MULAI ASESMEN & ACAK SOAL",
+                navTitle: "Navigasi Nomor Soal (Urutan Teracak Otomatis)",
+                prevBtn: "Sebelumnya",
+                nextBtn: "Selanjutnya"
+            },
+            en: {
+                lockoutTitle: "SYSTEM LOCKED OUT",
+                lockoutDesc: "Per assessment rules, students cannot resume the test. Please contact the proctor / administrator to unlock the session.",
+                usernameLabel: "Access Username",
+                passwordLabel: "Password",
+                loginBtn: "ENTER ASSESSMENT PORTAL",
+                timeRemaining: "Time Remaining (80 Mins)",
+                autoStopNotice: "Automatically stops & locks when time expires.",
+                studentIdentity: "Student Identity",
+                editBtn: "Change / Reset",
+                menuExam: "Assessment Sheet (40 Items)",
+                menuBlueprint: "Blueprint & Rubric",
+                menuCertificate: "Certificate (Min. Score 80)",
+                lockOutBtn: "LOCK OUT APPLICATION",
+                finishBtn: "SUBMIT & GRADE",
+                idModalTitle: "Student Identity Registration",
+                idModalSub: "Changing identity automatically resets answers and randomizes activity order without altering materials.",
+                labelName: "Student Full Name",
+                labelClass: "Class",
+                labelNumber: "Attendance Number",
+                labelSchool: "Madrasah / School Origin",
+                startExamBtn: "START ASSESSMENT & SHUFFLE",
+                navTitle: "Question Navigation (Auto-Shuffled Sequence)",
+                prevBtn: "Previous",
+                nextBtn: "Next"
+            }
+        };
+
+        /* =========================================================================
+           3. SECURITY GUARD: ANTI-COPY/PASTE, ANTI-TAB SWITCH, SCREEN LOCK DETECTION
+           ========================================================================= */
+        function initSecurityGuards() {
+            // Block Copy, Cut, Paste, Context Menu
+            ['copy', 'cut', 'paste', 'contextmenu', 'dragstart'].forEach(evt => {
+                document.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    showToast("⚠️ Keamanan: Copy/Paste & Klik Kanan dinonaktifkan!", "error");
+                });
+            });
+
+            // Block DevTools & Copy Keyboard Shortcuts (Ctrl+C, Ctrl+V, Ctrl+U, F12, PrintScreen)
+            document.addEventListener('keydown', (e) => {
+                if (
+                    (e.ctrlKey && ['c', 'v', 'x', 'u', 's', 'p', 'a'].includes(e.key.toLowerCase())) ||
+                    e.key === 'F12' ||
+                    (e.ctrlKey && e.shiftKey && ['i', 'j', 'c'].includes(e.key.toLowerCase()))
+                ) {
+                    e.preventDefault();
+                    showToast("⚠️ Pintasan keyboard diblokir oleh sistem!", "error");
+                }
+            });
+
+            // Detect Tab Switch / Minimize / Device Screen Lock (visibilitychange)
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && state.examActive && !state.examSubmitted && !state.isLockedOut) {
+                    triggerLockOut("Terdeteksi meninggalkan tab browser atau mengunci layar perangkat (Screen Lock / Tab Switch).");
+                }
+            });
+
+            // Detect Window Focus Loss (Alt+Tab, opening Search Engine / external window)
+            window.addEventListener('blur', () => {
+                if (state.examActive && !state.examSubmitted && !state.isLockedOut) {
+                    triggerLockOut("Terdeteksi membuka jendela aplikasi lain / search engine di luar layar asesmen.");
+                }
+            });
+        }
+
+        function triggerLockOut(reason) {
+            state.isLockedOut = true;
+            state.examActive = false;
+            clearInterval(state.timerInterval);
+
+            document.getElementById('lockout-reason').textContent = reason;
+            document.getElementById('lock-student-name').textContent = state.student.nama || "Peserta Terdaftar";
+            document.getElementById('lockout-screen').classList.remove('hidden');
+        }
+
+        function manualLockOut() {
+            triggerLockOut("Aplikasi dikunci secara manual melalui menu LOCK OUT oleh pengguna.");
+        }
+
+        function toggleAdminUnlockBox() {
+            const box = document.getElementById('admin-unlock-box');
+            box.classList.toggle('hidden');
+        }
+
+        function attemptAdminUnlock() {
+            const pass = document.getElementById('unlock-pass-input').value.trim();
+            if (pass === 'bismillah') {
+                state.isLockedOut = false;
+                document.getElementById('unlock-pass-input').value = '';
+                document.getElementById('admin-unlock-box').classList.add('hidden');
+                document.getElementById('lockout-screen').classList.add('hidden');
+                resetAssessmentForNewStudent();
+                openIdentityModal();
+                showToast("✅ Sesi berhasil dibuka & direset oleh pengawas.", "success");
+            } else {
+                showToast("❌ Kata sandi otorisasi salah!", "error");
+            }
+        }
+
+        /* =========================================================================
+           4. AUTHENTICATION & IDENTITY / AUTO-RANDOMIZATION ENGINE
+           ========================================================================= */
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value.trim();
+
+            if (user === 'admin' && pass === 'bismillah') {
+                state.isAuthenticated = true;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-shell').classList.remove('hidden');
+                openIdentityModal();
+                showToast("✅ Autentikasi berhasil! Silakan isi identitas murid.", "success");
+            } else {
+                showToast("❌ Username atau Password tidak valid!", "error");
+            }
+        }
+
+        function openIdentityModal() {
+            // Temporarily pause blur lock while filling identity modal
+            state.examActive = false;
+            document.getElementById('input-nama').value = state.student.nama;
+            document.getElementById('input-kelas').value = state.student.kelas;
+            document.getElementById('input-presensi').value = state.student.presensi;
+            document.getElementById('input-madrasah').value = state.student.madrasah;
+            document.getElementById('identity-modal').classList.remove('hidden');
+        }
+
+        function saveStudentIdentity(e) {
+            e.preventDefault();
+            const newNama = document.getElementById('input-nama').value.trim();
+            const newKelas = document.getElementById('input-kelas').value.trim();
+            const newPresensi = document.getElementById('input-presensi').value.trim();
+            const newMadrasah = document.getElementById('input-madrasah').value.trim();
+
+            const identityChanged = (
+                newNama !== state.student.nama ||
+                newKelas !== state.student.kelas ||
+                newPresensi !== state.student.presensi ||
+                newMadrasah !== state.student.madrasah
+            );
+
+            state.student = { nama: newNama, kelas: newKelas, presensi: newPresensi, madrasah: newMadrasah };
+
+            // Update Sidebar Display
+            document.getElementById('disp-nama').textContent = newNama;
+            document.getElementById('disp-kelas').textContent = newKelas;
+            document.getElementById('disp-presensi').textContent = newPresensi;
+            document.getElementById('disp-madrasah').textContent = newMadrasah;
+
+            if (identityChanged || state.questions.length === 0) {
+                resetAssessmentForNewStudent();
+                showToast("🔄 Identitas diperbarui: Soal diacak otomatis & progres direset!", "info");
+            }
+
+            document.getElementById('identity-modal').classList.add('hidden');
+            switchView('exam');
+            
+            // Start Exam Security & 80-Minute Real-Time Timer
+            state.examActive = true;
+            startTimer();
+        }
+
+        function resetAssessmentForNewStudent() {
+            clearInterval(state.timerInterval);
+            state.answers = {};
+            state.currentIdx = 0;
+            state.examSubmitted = false;
+            state.timeLeft = EXAM_DURATION_SECONDS;
+            state.rawScore = 0;
+            state.finalScore = 0;
+
+            // Deterministic-yet-unique shuffle per student identity while keeping stimulus integrity
+            state.questions = shuffleQuestionsPreservingMaterials(RAW_QUESTIONS);
+            
+            document.getElementById('btn-submit-exam').disabled = false;
+            document.getElementById('btn-submit-exam').classList.remove('opacity-50');
+            document.getElementById('cert-unlocked-wrapper').classList.add('hidden');
+            document.getElementById('cert-locked-wrapper').classList.remove('hidden');
+            document.getElementById('result-status-title').textContent = "Sedang Berlangsung";
+            document.getElementById('result-status-desc').textContent = "Selesaikan seluruh 40 soal sebelum waktu 80 menit berakhir.";
+            document.getElementById('raw-score-display').textContent = "0 / 70";
+            document.getElementById('final-score-display').textContent = "0";
+
+            updateTimerUI();
+            renderNavigator();
+            renderQuestion(0);
+        }
+
+        // Shuffles stimulus groups AND shuffles questions within each stimulus group without changing content
+        function shuffleQuestionsPreservingMaterials(questions) {
+            const groups = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+            questions.forEach(q => {
+                // Deep clone question
+                const clone = JSON.parse(JSON.stringify(q));
+                groups[clone.stim].push(clone);
+            });
+
+            // Fisher-Yates shuffle helper
+            const shuffleArr = (arr) => {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            };
+
+            const stimOrder = shuffleArr([1, 2, 3, 4, 5]);
+            let result = [];
+            stimOrder.forEach(stimId => {
+                const shuffledGroup = shuffleArr(groups[stimId]);
+                result = result.concat(shuffledGroup);
+            });
+            return result;
+        }
+
+        /* =========================================================================
+           5. REAL-TIME 80-MINUTE COUNTDOWN TIMER
+           ========================================================================= */
+        function startTimer() {
+            clearInterval(state.timerInterval);
+            state.timerInterval = setInterval(() => {
+                if (!state.examActive || state.examSubmitted || state.isLockedOut) return;
+
+                state.timeLeft--;
+                updateTimerUI();
+
+                if (state.timeLeft <= 0) {
+                    state.timeLeft = 0;
+                    updateTimerUI();
+                    clearInterval(state.timerInterval);
+                    showToast("⏰ WAKTU 80 MENIT HABIS! Aplikasi berhenti & menilai otomatis.", "error");
+                    submitAssessment(true);
+                }
+            }, 1000);
+        }
+
+        function updateTimerUI() {
+            const mins = Math.floor(state.timeLeft / 60);
+            const secs = state.timeLeft % 60;
+            const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            const display = document.getElementById('timer-display');
+            display.textContent = formatted;
+
+            if (state.timeLeft <= 300) {
+                display.classList.remove('text-gold-400');
+                display.classList.add('text-red-400', 'animate-pulse');
+            } else {
+                display.classList.add('text-gold-400');
+                display.classList.remove('text-red-400', 'animate-pulse');
+            }
+        }
+
+        /* =========================================================================
+           6. QUESTION RENDERING & INTERACTION LOGIC
+           ========================================================================= */
+        function renderNavigator() {
+            const grid = document.getElementById('question-nav-grid');
+            grid.innerHTML = '';
+            let answeredCount = 0;
+
+            state.questions.forEach((q, idx) => {
+                const answered = isQuestionAnswered(q);
+                if (answered) answeredCount++;
+
+                const btn = document.createElement('button');
+                btn.textContent = idx + 1;
+                btn.onclick = () => renderQuestion(idx);
+
+                let baseClass = "h-8 rounded-lg text-xs font-bold transition flex items-center justify-center ";
+                if (idx === state.currentIdx) {
+                    baseClass += "bg-gold-500 text-royal-950 ring-2 ring-gold-300 scale-105";
+                } else if (answered) {
+                    baseClass += "bg-emerald-500 text-white hover:bg-emerald-400";
+                } else {
+                    baseClass += "bg-slate-200 dark:bg-royal-800 text-slate-700 dark:text-slate-300 hover:bg-purple-200 dark:hover:bg-royal-700";
+                }
+                btn.className = baseClass;
+                grid.appendChild(btn);
+            });
+
+            document.getElementById('answered-count').textContent = answeredCount;
+        }
+
+        function isQuestionAnswered(q) {
+            const ans = state.answers[q.id];
+            if (ans === undefined || ans === null) return false;
+            if (q.type === 'pg') return typeof ans === 'number';
+            if (q.type === 'pgk') return Array.isArray(ans) && ans.length > 0;
+            if (q.type === 'match') return Array.isArray(ans) && ans.filter(Boolean).length === 4;
+            if (q.type === 'short' || q.type === 'essay') return typeof ans === 'string' && ans.trim().length > 0;
+            if (q.type === 'tf') return ans && (ans.tf === 'True' || ans.tf === 'False') && ans.reason && ans.reason.trim().length > 0;
+            return false;
+        }
+
+        function renderQuestion(idx) {
+            state.currentIdx = idx;
+            const q = state.questions[idx];
+            const stim = STIMULI[q.stim];
+
+            // Render Stimulus
+            document.getElementById('stimulus-badge').textContent = `STIMULUS ${q.stim}`;
+            document.getElementById('stimulus-title').textContent = stim.title;
+            document.getElementById('stimulus-body').textContent = stim.text;
+
+            // Render Question Header
+            const typeLabels = {
+                pg: "Pilihan Ganda",
+                pgk: "Pilihan Ganda Kompleks",
+                match: "Menjodohkan (Matching)",
+                short: "Jawaban Singkat",
+                tf: "Benar / Salah + Alasan",
+                essay: "Uraian Terbatas"
+            };
+            document.getElementById('q-number-badge').textContent = `SOAL #${idx + 1}`;
+            document.getElementById('q-type-badge').textContent = typeLabels[q.type];
+            document.getElementById('q-domain-badge').textContent = `Ranah: ${q.domain}`;
+            document.getElementById('q-points-badge').textContent = `${q.pts} Poin`;
+            document.getElementById('q-prompt').textContent = q.prompt;
+
+            // Render Answer Controls
+            const area = document.getElementById('q-answer-area');
+            area.innerHTML = '';
+            const disabledAttr = state.examSubmitted ? 'disabled' : '';
+
+            if (q.type === 'pg') {
+                q.options.forEach((opt, optIdx) => {
+                    const isSelected = state.answers[q.id] === optIdx;
+                    const label = document.createElement('label');
+                    label.className = `flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition ${
+                        isSelected
+                        ? 'bg-gold-500/20 border-gold-400 text-royal-950 dark:text-gold-300 font-bold'
+                        : 'bg-slate-50 dark:bg-royal-950/60 border-slate-200 dark:border-purple-800 hover:border-gold-400/60'
+                    }`;
+                    label.innerHTML = `
+                        <input type="radio" name="q_${q.id}" ${isSelected ? 'checked' : ''} ${disabledAttr} class="accent-amber-500 w-4 h-4">
+                        <span class="text-sm">${opt}</span>
+                    `;
+                    label.onclick = () => {
+                        if (state.examSubmitted) return;
+                        state.answers[q.id] = optIdx;
+                        renderQuestion(idx);
+                        renderNavigator();
+                    };
+                    area.appendChild(label);
+                });
+            } 
+            else if (q.type === 'pgk') {
+                const currentArr = Array.isArray(state.answers[q.id]) ? state.answers[q.id] : [];
+                const hint = document.createElement('p');
+                hint.className = "text-xs text-amber-600 dark:text-gold-400 font-semibold mb-2";
+                hint.textContent = "Pilih lebih dari satu jawaban yang benar (centang semua yang sesuai):";
+                area.appendChild(hint);
+
+                q.options.forEach((opt, optIdx) => {
+                    const isChecked = currentArr.includes(optIdx);
+                    const label = document.createElement('label');
+                    label.className = `flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition ${
+                        isChecked
+                        ? 'bg-gold-500/20 border-gold-400 text-royal-950 dark:text-gold-300 font-bold'
+                        : 'bg-slate-50 dark:bg-royal-950/60 border-slate-200 dark:border-purple-800 hover:border-gold-400/60'
+                    }`;
+                    label.innerHTML = `
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} ${disabledAttr} class="accent-amber-500 w-4 h-4 rounded">
+                        <span class="text-sm">${opt}</span>
+                    `;
+                    label.querySelector('input').onchange = (e) => {
+                        if (state.examSubmitted) return;
+                        let updated = [...currentArr];
+                        if (e.target.checked) {
+                            if (!updated.includes(optIdx)) updated.push(optIdx);
+                        } else {
+                            updated = updated.filter(item => item !== optIdx);
+                        }
+                        state.answers[q.id] = updated;
+                        renderQuestion(idx);
+                        renderNavigator();
+                    };
+                    area.appendChild(label);
+                });
+            }
+            else if (q.type === 'match') {
+                const currentMatch = Array.isArray(state.answers[q.id]) ? state.answers[q.id] : ["", "", "", ""];
+                
+                // Display Column B Reference Box
+                const refBox = document.createElement('div');
+                refBox.className = "p-3.5 rounded-2xl bg-purple-50 dark:bg-royal-950/80 border border-purple-200 dark:border-purple-800 text-xs space-y-1 mb-3";
+                refBox.innerHTML = `<p class="font-bold text-purple-800 dark:text-gold-400 mb-1">Pilihan Pasangan (Column B):</p>` +
+                    q.right.map(r => `<p class="text-slate-700 dark:text-slate-300">${r}</p>`).join('');
+                area.appendChild(refBox);
+
+                q.left.forEach((leftItem, lIdx) => {
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 dark:bg-royal-950/60 border border-slate-200 dark:border-purple-800";
+                    row.innerHTML = `
+                        <span class="text-xs sm:text-sm font-semibold">${leftItem}</span>
+                        <select ${disabledAttr} class="px-3 py-1.5 rounded-lg bg-white dark:bg-royal-800 border border-gold-500/40 text-xs font-bold text-royal-900 dark:text-gold-300 focus:outline-none">
+                            <option value="">-- Pilih --</option>
+                            <option value="A" ${currentMatch[lIdx] === 'A' ? 'selected' : ''}>Pasangan A</option>
+                            <option value="B" ${currentMatch[lIdx] === 'B' ? 'selected' : ''}>Pasangan B</option>
+                            <option value="C" ${currentMatch[lIdx] === 'C' ? 'selected' : ''}>Pasangan C</option>
+                            <option value="D" ${currentMatch[lIdx] === 'D' ? 'selected' : ''}>Pasangan D</option>
+                        </select>
+                    `;
+                    row.querySelector('select').onchange = (e) => {
+                        const updated = [...currentMatch];
+                        updated[lIdx] = e.target.value;
+                        state.answers[q.id] = updated;
+                        renderNavigator();
+                    };
+                    area.appendChild(row);
+                });
+            }
+            else if (q.type === 'tf') {
+                const currentTF = state.answers[q.id] || { tf: '', reason: '' };
+                const btnGroup = document.createElement('div');
+                btnGroup.className = "grid grid-cols-2 gap-3 mb-3";
+                ['True', 'False'].forEach(val => {
+                    const active = currentTF.tf === val;
+                    const btn = document.createElement('button');
+                    btn.type = "button";
+                    btn.disabled = state.examSubmitted;
+                    btn.textContent = val.toUpperCase();
+                    btn.className = `py-3 rounded-xl font-extrabold text-xs border transition ${
+                        active
+                        ? 'bg-gold-500 text-royal-950 border-gold-400 shadow'
+                        : 'bg-slate-100 dark:bg-royal-950 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-purple-800'
+                    }`;
+                    btn.onclick = () => {
+                        state.answers[q.id] = { ...currentTF, tf: val };
+                        renderQuestion(idx);
+                        renderNavigator();
+                    };
+                    btnGroup.appendChild(btn);
+                });
+                area.appendChild(btnGroup);
+
+                const txt = document.createElement('textarea');
+                txt.rows = 3;
+                txt.disabled = state.examSubmitted;
+                txt.placeholder = "Tuliskan alasan singkat berdasarkan bukti dari teks...";
+                txt.value = currentTF.reason || '';
+                txt.className = "w-full p-3.5 rounded-2xl bg-slate-50 dark:bg-royal-950 border border-slate-300 dark:border-purple-800 text-sm focus:outline-none focus:border-gold-400";
+                txt.oninput = (e) => {
+                    state.answers[q.id] = { ...(state.answers[q.id] || { tf: '' }), reason: e.target.value };
+                    renderNavigator();
+                };
+                area.appendChild(txt);
+            }
+            else if (q.type === 'short' || q.type === 'essay') {
+                const txt = document.createElement('textarea');
+                txt.rows = q.type === 'short' ? 3 : 5;
+                txt.disabled = state.examSubmitted;
+                txt.placeholder = q.type === 'short'
+                    ? "Tuliskan jawaban singkat beserta bukti teks..."
+                    : "Tuliskan uraian evaluasi Anda dengan menyertakan DUA detail bukti dari teks...";
+                txt.value = state.answers[q.id] || '';
+                txt.className = "w-full p-4 rounded-2xl bg-slate-50 dark:bg-royal-950 border border-slate-300 dark:border-purple-800 text-sm focus:outline-none focus:border-gold-400";
+                txt.oninput = (e) => {
+                    state.answers[q.id] = e.target.value;
+                    renderNavigator();
+                };
+                area.appendChild(txt);
+            }
+
+            // Update Prev / Next Buttons
+            document.getElementById('btn-prev').disabled = idx === 0;
+            document.getElementById('btn-next').textContent = idx === state.questions.length - 1 ? "Selesai" : (state.lang === 'id' ? "Selanjutnya →" : "Next →");
+            renderNavigator();
+        }
+
+        function prevQuestion() {
+            if (state.currentIdx > 0) renderQuestion(state.currentIdx - 1);
+        }
+
+        function nextQuestion() {
+            if (state.currentIdx < state.questions.length - 1) {
+                renderQuestion(state.currentIdx + 1);
+            } else {
+                submitAssessment();
+            }
+        }
+
+        /* =========================================================================
+           7. AUTOMATED RUBRIC GRADING & CERTIFICATE GENERATION (MIN SCORE 80)
+           ========================================================================= */
+        function submitAssessment(isAutoTimeout = false) {
+            if (state.examSubmitted) {
+                switchView('certificate');
+                return;
+            }
+
+            state.examSubmitted = true;
+            state.examActive = false;
+            clearInterval(state.timerInterval);
+
+            let totalRaw = 0;
+
+            state.questions.forEach(q => {
+                const ans = state.answers[q.id];
+                if (!ans && ans !== 0) return;
+
+                if (q.type === 'pg') {
+                    if (ans === q.correct) totalRaw += 1;
+                }
+                else if (q.type === 'pgk') {
+                    if (Array.isArray(ans) && ans.length > 0) {
+                        const hasWrong = ans.some(x => !q.correct.includes(x));
+                        const correctSelected = ans.filter(x => q.correct.includes(x)).length;
+                        if (!hasWrong && correctSelected === q.correct.length) totalRaw += 2;
+                        else if (!hasWrong && correctSelected > 0) totalRaw += 1;
+                    }
+                }
+                else if (q.type === 'match') {
+                    if (Array.isArray(ans)) {
+                        let matches = 0;
+                        q.correct.forEach((c, i) => { if (ans[i] === c) matches++; });
+                        if (matches === 4) totalRaw += 2;
+                        else if (matches >= 2) totalRaw += 1;
+                    }
+                }
+                else if (q.type === 'tf') {
+                    if (ans.tf === q.correctTF) totalRaw += 1;
+                    if (ans.reason && ans.reason.trim().length >= 5) {
+                        const lower = ans.reason.toLowerCase();
+                        const hit = q.keywords.some(kw => lower.includes(kw));
+                        if (hit || ans.reason.trim().split(/\s+/).length >= 4) totalRaw += 1;
+                    }
+                }
+                else if (q.type === 'short') {
+                    const lower = String(ans).toLowerCase().trim();
+                    if (lower.length >= 4) {
+                        const hits = q.keywords.filter(kw => lower.includes(kw)).length;
+                        if (hits >= 2 || lower.split(/\s+/).length >= 5) totalRaw += 2;
+                        else if (hits === 1 || lower.length >= 4) totalRaw += 1;
+                    }
+                }
+                else if (q.type === 'essay') {
+                    const lower = String(ans).toLowerCase().trim();
+                    if (lower.length >= 8) {
+                        const hits = q.keywords.filter(kw => lower.includes(kw)).length;
+                        const words = lower.split(/\s+/).length;
+                        if (hits >= 3 || words >= 12) totalRaw += 3;
+                        else if (hits >= 2 || words >= 7) totalRaw += 2;
+                        else totalRaw += 1;
+                    }
+                }
+            });
+
+            state.rawScore = Math.min(70, totalRaw);
+            state.finalScore = Math.round((state.rawScore / 70) * 100);
+
+            // Lock Submit Button
+            const submitBtn = document.getElementById('btn-submit-exam');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50');
+
+            // Update Result View
+            document.getElementById('raw-score-display').textContent = `${state.rawScore} / 70`;
+            document.getElementById('final-score-display').textContent = state.finalScore;
+
+            if (state.finalScore >= 80) {
+                document.getElementById('result-status-title').textContent = "LULUS — SERTIFIKAT DITERBITKAN";
+                document.getElementById('result-status-desc').textContent = `Selamat ${state.student.nama}! Anda melampaui batas minimal kelulusan (80).`;
+                
+                document.getElementById('cert-student-name').textContent = state.student.nama;
+                document.getElementById('cert-student-class').textContent = state.student.kelas;
+                document.getElementById('cert-student-num').textContent = state.student.presensi;
+                document.getElementById('cert-student-school').textContent = state.student.madrasah;
+                document.getElementById('cert-final-score').textContent = state.finalScore;
+                document.getElementById('cert-date').textContent = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                document.getElementById('cert-unlocked-wrapper').classList.remove('hidden');
+                document.getElementById('cert-locked-wrapper').classList.add('hidden');
+            } else {
+                document.getElementById('result-status-title').textContent = "BELUM MENCAPAI BATAS SERTIFIKAT (MIN. 80)";
+                document.getElementById('result-status-desc').textContent = "Skor akhir Anda di bawah 80. Silakan pelajari kembali kisi-kisi atau lakukan asesmen ulang.";
+                document.getElementById('cert-unlocked-wrapper').classList.add('hidden');
+                document.getElementById('cert-locked-wrapper').classList.remove('hidden');
+            }
+
+            renderQuestion(state.currentIdx);
+            switchView('certificate');
+            showToast(isAutoTimeout ? "⏰ Waktu habis! Hasil akhir telah dihitung." : "✅ Asesmen selesai! Menampilkan hasil & sertifikat.", "success");
+        }
+
+        /* =========================================================================
+           8. UI CONTROLS: VIEW SWITCHER, THEME, LANGUAGE, TOAST
+           ========================================================================= */
+        function switchView(viewName) {
+            ['exam', 'kisi', 'certificate'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+            });
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+
+            // Update sidebar button active states
+            const navMap = { exam: 'nav-btn-exam', kisi: 'nav-btn-kisi', certificate: 'nav-btn-cert' };
+            Object.entries(navMap).forEach(([k, btnId]) => {
+                const btn = document.getElementById(btnId);
+                if (k === viewName) {
+                    btn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold bg-gradient-to-r from-gold-500 to-amber-500 text-royal-950 shadow-md transition";
+                } else {
+                    btn.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-royal-800 transition";
+                }
+            });
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                state.theme = 'light';
+                document.getElementById('theme-icon').textContent = '🌙';
+                document.getElementById('theme-text').textContent = state.lang === 'id' ? 'Gelap' : 'Dark';
+            } else {
+                html.classList.add('dark');
+                state.theme = 'dark';
+                document.getElementById('theme-icon').textContent = '☀️';
+                document.getElementById('theme-text').textContent = state.lang === 'id' ? 'Terang' : 'Light';
+            }
+        }
+
+        function toggleLanguage() {
+            state.lang = state.lang === 'id' ? 'en' : 'id';
+            const dict = I18N[state.lang];
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) el.textContent = dict[key];
+            });
+
+            document.getElementById('sidebar-lang-text').textContent = state.lang === 'id' ? 'Bahasa: ID' : 'Lang: EN';
+            document.getElementById('login-lang-label').textContent = state.lang === 'id' ? 'ID / EN' : 'EN / ID';
+            document.getElementById('theme-text').textContent = state.theme === 'dark'
+                ? (state.lang === 'id' ? 'Terang' : 'Light')
+                : (state.lang === 'id' ? 'Gelap' : 'Dark');
+        }
+
+        function toggleMobileSidebar() {
+            const content = document.getElementById('sidebar-content');
+            content.classList.toggle('hidden');
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-emerald-900/95 border-emerald-400 text-emerald-100',
+                error: 'bg-red-950/95 border-red-500 text-red-100',
+                info: 'bg-royal-900/95 border-gold-400 text-gold-200'
+            };
+            toast.className = `px-4 py-3 rounded-2xl border shadow-xl text-xs font-bold glass-panel transition-all duration-300 ${colors[type] || colors.info}`;
+            toast.textContent = msg;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Initialize Security Listeners on Load
+        window.onload = function() {
+            initSecurityGuards();
+        };
+    </script>
+</body>
+</html>
